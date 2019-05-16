@@ -12,7 +12,8 @@ import cv2
 import yaml
 from scipy.spatial import KDTree
 
-STATE_COUNT_THRESHOLD = 3
+STATE_COUNT_THRESHOLD = 2
+
 
 class TLDetector(object):
     def __init__(self):
@@ -24,6 +25,10 @@ class TLDetector(object):
         self.waypoints_2d = None
         self.waypoints_tree = None
         self.lights = []
+
+        self.prev_light_state = None
+        self.light_state = None
+        self.img_counter = 0
 
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -50,7 +55,7 @@ class TLDetector(object):
         self.state = TrafficLight.UNKNOWN
         self.last_state = TrafficLight.UNKNOWN
         self.last_wp = -1
-        self.state_count = 0
+        self.state_count = STATE_COUNT_THRESHOLD
 
         rospy.spin()
 
@@ -121,17 +126,28 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        """
         if(not self.has_image):
             self.prev_light_loc = None
             return False
 
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
-
-        #Get classification
-        return self.light_classifier.get_classification(cv_image)
         """
-        return light.state
+        #Get classification
+        if(self.img_counter == STATE_COUNT_THRESHOLD):
+            self.light_state = self.light_classifier.get_classification(cv_image)
+            self.prev_light_state = self.light_state
+            self.img_counter = 0
+        else:
+            self.light_state = self.prev_light_state
+            self.img_counter = self.img_counter + 1
+
+
+        return self.light_state
+        """
+        return self.light_classifier.get_classification(cv_image)
+
+        #rospy.logerr(scores)
+        #return light.state
 
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its

@@ -30,7 +30,7 @@ LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this n
 class WaypointUpdater(object):
     def __init__(self):
         rospy.init_node('waypoint_updater')
-        rospy.logerr("Entered Init waypoint_updater")
+        #rospy.logerr("Entered Init waypoint_updater")
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
@@ -103,7 +103,7 @@ class WaypointUpdater(object):
 
     def decelerate_waypoints(self,waypoints,closest_idx):
         temp = []
-        rospy.logerr("Entered decelerate_waypoints")
+        #rospy.logerr("Entered decelerate_waypoints")
         for i, wp in enumerate(waypoints):
 
             p = Waypoint()
@@ -134,8 +134,8 @@ class WaypointUpdater(object):
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
         self.stopline_wp_idx = msg.data
-        rospy.logerr("traffic_cb")
-        rospy.logerr(self.stopline_wp_idx)
+        #rospy.logerr("traffic_cb")
+        #rospy.logerr(self.stopline_wp_idx)
         #pass
 
     def obstacle_cb(self, msg):
