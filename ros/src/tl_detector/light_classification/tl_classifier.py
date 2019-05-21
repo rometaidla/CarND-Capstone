@@ -58,5 +58,5 @@ class TLClassifier(object):
             elif classes[0] == 3:
                 rospy.logerr('TRAFFIC LIGHT : YELLOW')
                 return TrafficLight.YELLOW
-        rospy.logerr('TRAFFIC LIGHT : YELLOW')
+        rospy.logerr('TRAFFIC LIGHT : UNKNOWN')
         return TrafficLight.UNKNOWN
