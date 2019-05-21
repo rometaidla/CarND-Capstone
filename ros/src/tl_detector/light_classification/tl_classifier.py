@@ -1,12 +1,16 @@
 from styx_msgs.msg import TrafficLight
 import numpy as np
 import tensorflow as tf
-import datetime
+import rospy
 
-#PATH_TO_MODEL = '~/Desktop/CarND-Capstone-master/ros/src/tl_detector/light_classification/capstone/out_frozen_sim/frozen_inference_graph.pb'
 class TLClassifier(object):
-    def __init__(self):
-        PATH_TO_MODEL = r'light_classification/frozen_inference_graph.pb'
+    def __init__(self,is_site):
+        
+        if is_site == True:
+            PATH_TO_MODEL = r'light_classification/models/carla/carla_SSD_10k.pb'
+        else:
+            PATH_TO_MODEL = r'light_classification/models/simulator/simulator_SSD_10k.pb'
+        
         self.threshold = .5
         self.detection_graph = tf.Graph()
         with self.detection_graph.as_default():
@@ -36,31 +40,23 @@ class TLClassifier(object):
         with self.detection_graph.as_default():
             # Expand dimension since the model expects image to have shape [1, None, None, 3].
             img_expanded = np.expand_dims(image, axis=0)  
-            start = datetime.datetime.now()
             (boxes, scores, classes, num) = self.sess.run(
                 [self.d_boxes, self.d_scores, self.d_classes, self.num_d],
                 feed_dict={self.image_tensor: img_expanded})
-            end = datetime.datetime.now()
-            c = end - start
-            print('TIME(S) : 'c.total_seconds())
 
+        boxes = np.squeeze(boxes)
         scores = np.squeeze(scores)
         classes = np.squeeze(classes).astype(np.int32)
 
-        print('SCORES  : ', scores[0])
-        print('CLASSES : ', classes[0])
-
         if scores[0] > self.threshold:
             if classes[0] == 1:
-                print('STATE : GREEN')
+                rospy.logerr('TRAFFIC LIGHT : GREEN')
                 return TrafficLight.GREEN
             elif classes[0] == 2:
-                print('STATE : RED')
+                rospy.logerr('TRAFFIC LIGHT : RED')
                 return TrafficLight.RED
             elif classes[0] == 3:
-                print('STATE : YELLOW')
+                rospy.logerr('TRAFFIC LIGHT : YELLOW')
                 return TrafficLight.YELLOW
-
+        rospy.logerr('TRAFFIC LIGHT : YELLOW')
         return TrafficLight.UNKNOWN
-        #return boxes, scores, classes, num
-        #return TrafficLight.UNKNOWN
